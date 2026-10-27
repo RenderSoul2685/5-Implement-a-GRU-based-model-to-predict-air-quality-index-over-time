@@ -1,0 +1,37 @@
+<div class="aqi-reference-wrapper" style="width: 100%;">
+  <h2 class="card-title" style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.85rem; color: var(--text-main);">
+    How to read the AQI (CPCB categories)
+  </h2>
+
+  <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; margin-bottom: 0.85rem;">
+    <table class="data-table" id="aqi-reference-table" style="width: 100%; min-width: 520px; border-collapse: collapse;">
+      <thead>
+        <tr>
+          <th style="width: 22%; white-space: nowrap;">AQI range</th>
+          <th style="width: 32%; white-space: nowrap;">Category</th>
+          <th style="width: 46%;">Meaning</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in aqi_reference_rows %}
+        <tr {% if forecast_category and row.category == forecast_category %}class="aqi-ref-highlight" data-highlighted="true"{% endif %} id="aqi-row-{{ row.category|slugify }}">
+          <td><strong>{{ row.range }}</strong></td>
+          <td>
+            <span class="badge badge-{{ row.category|slugify }} badge-{{ row.category|cut:' ' }}">
+              {{ row.category }}
+            </span>
+            {% if forecast_category and row.category == forecast_category %}
+              <span class="aqi-ref-label" id="forecast-highlight-label">Tomorrow's forecast</span>
+            {% endif %}
+          </td>
+          <td>{{ row.meaning }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <p class="aqi-reference-footnote" style="font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5;">
+    Simplified summary of the CPCB (India) AQI categories. The AQI is the highest sub-index among PM2.5, PM10, NO2, SO2, CO and ozone.
+  </p>
+</div>

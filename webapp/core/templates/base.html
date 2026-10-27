@@ -1,0 +1,62 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Delhi AQI Next-Day Forecast | AQI-GRU{% endblock %}</title>
+  
+  <!-- Modern Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Pinned Chart.js from cdnjs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+  <!-- Application Stylesheet -->
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+  <!-- Navigation Header -->
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="{% url 'forecast' %}" class="nav-brand">
+        <span>🌬️ Delhi AQI Next-Day Forecast</span>
+        <span class="brand-badge">GRU Daily</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li>
+            <a href="{% url 'forecast' %}" class="nav-link {% if request.path == '/' %}active{% endif %}">
+              Next-Day Replay
+            </a>
+          </li>
+          <li>
+            <a href="{% url 'about' %}" class="nav-link {% if '/about' in request.path %}active{% endif %}">
+              About &amp; Methodology
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Application Body -->
+  <main class="main-container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Application Footer -->
+  <footer class="footer">
+    <div class="nav-container" style="display: block; text-align: center;">
+      <p><strong>AQI-GRU Delhi Urban Air Quality Forecasting</strong> • Authentic CPCB / DPCC CAAQMS Observations (2023–2025)</p>
+      <p style="margin-top: 0.25rem; font-size: 0.8rem; color: var(--text-light);">
+        Residual 2-Layer GRU • 14-Day Historical Lookback • Next-Day Horizon (h = 1 Day)
+      </p>
+    </div>
+  </footer>
+
+  {% block extra_scripts %}{% endblock %}
+</body>
+</html>

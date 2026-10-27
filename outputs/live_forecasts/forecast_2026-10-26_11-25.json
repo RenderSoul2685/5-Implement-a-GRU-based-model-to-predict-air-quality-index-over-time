@@ -1,0 +1,37 @@
+[
+  {
+    "station": "Anand_Vihar",
+    "anchor_date": "2026-10-25",
+    "predicted_aqi": 240.4,
+    "category": "Poor",
+    "fetch_time": "2026-10-26 11:25:00 IST"
+  },
+  {
+    "station": "Punjabi_Bagh",
+    "anchor_date": "2026-10-25",
+    "predicted_aqi": 366.8,
+    "category": "Very Poor",
+    "fetch_time": "2026-10-26 11:25:00 IST"
+  },
+  {
+    "station": "RK_Puram",
+    "anchor_date": "2026-10-25",
+    "predicted_aqi": 370.6,
+    "category": "Very Poor",
+    "fetch_time": "2026-10-26 11:25:00 IST"
+  },
+  {
+    "station": "Mandir_Marg",
+    "anchor_date": "2026-10-25",
+    "predicted_aqi": 338.2,
+    "category": "Very Poor",
+    "fetch_time": "2026-10-26 11:25:00 IST"
+  },
+  {
+    "station": "Bawana",
+    "anchor_date": "2026-10-25",
+    "predicted_aqi": 356.9,
+    "category": "Very Poor",
+    "fetch_time": "2026-10-26 11:25:00 IST"
+  }
+]

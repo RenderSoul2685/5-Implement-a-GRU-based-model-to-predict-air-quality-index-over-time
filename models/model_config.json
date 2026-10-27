@@ -1,0 +1,34 @@
+{
+  "model_type": "AQIGRU_Daily",
+  "task": "next_day_forecast",
+  "lookback": 14,
+  "horizon": 1,
+  "mode": "residual",
+  "feature_cols": [
+    "AQI_interp",
+    "temperature",
+    "humidity",
+    "wind_speed",
+    "pressure",
+    "dayofweek_sin",
+    "dayofweek_cos",
+    "month_sin",
+    "month_cos"
+  ],
+  "selected_seed": 42,
+  "architecture": {
+    "input_size": 9,
+    "hidden_size": 64,
+    "num_layers": 2,
+    "output_size": 1,
+    "dropout": 0.2
+  },
+  "performance_3seeds": {
+    "test_rmse_mean": 40.42136177925586,
+    "test_rmse_std": 0.46673476150453835,
+    "test_mae_mean": 31.416449228922527,
+    "test_mae_std": 0.3160133414324397,
+    "test_r2_mean": 0.8014424641927084,
+    "test_r2_std": 0.004566584418494187
+  }
+}

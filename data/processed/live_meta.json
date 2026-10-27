@@ -1,0 +1,94 @@
+{
+  "mode": "LIVE",
+  "reference_date": "2026-10-25",
+  "latest_anchor_date": "2026-10-25",
+  "stations_with_recent_readings": 6,
+  "timezone_correction": "UTC to IST (+05:30) applied before hourly aggregation",
+  "weather": {
+    "url": "https://archive-api.open-meteo.com/v1/archive?latitude=28.6139&longitude=77.2090&start_date=2026-01-01&end_date=2026-10-25&daily=temperature_2m_mean,relative_humidity_2m_mean,wind_speed_10m_max,surface_pressure_mean&timezone=Asia%2FKolkata",
+    "sha256": "b43d8676c5c0cd8e6e803a47ba1fe920b0a321e2ae98a7f38a04898a0cb38a8e",
+    "rows": 298,
+    "min_date": "2026-01-01",
+    "max_date": "2026-10-25"
+  },
+  "stations": {
+    "Anand_Vihar": {
+      "site_id": "site_301",
+      "station_name": "Anand Vihar, Delhi - DPCC",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__anand_vihar_delhi_dpcc__site_301.csv.gz",
+      "filename": "anand_vihar_live_site_301.csv.gz",
+      "sha256": "e1da3d3b77a3a8da1b7ed53eab48feb35120c4b0cd0cddb27eebb84111bcefae",
+      "min_timestamp_utc": "2025-11-30 13:44:31.476310",
+      "max_timestamp_utc": "2026-10-25 17:20:50.519450",
+      "min_timestamp": "2025-11-30 19:14:31.476310",
+      "max_timestamp": "2026-10-25 22:50:50.519450",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 8809
+    },
+    "Bawana": {
+      "site_id": "site_1560",
+      "station_name": "Bawana, Delhi - DPCC",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__bawana_delhi_dpcc__site_1560.csv.gz",
+      "filename": "bawana_live_site_1560.csv.gz",
+      "sha256": "d751445ebeba6f83cb865753e9c7cc65e706aea499c7b9a11c80ab25644e1d55",
+      "min_timestamp_utc": "2025-11-30 13:44:22.568877",
+      "max_timestamp_utc": "2026-10-25 17:20:51.294833",
+      "min_timestamp": "2025-11-30 19:14:22.568877",
+      "max_timestamp": "2026-10-25 22:50:51.294833",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 10751
+    },
+    "ITO": {
+      "site_id": "site_117",
+      "station_name": "ITO, Delhi - CPCB",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__ito_delhi_cpcb__site_117.csv.gz",
+      "filename": "ito_live_site_117.csv.gz",
+      "sha256": "6303a9e147dd1c5a67a46422e37ba3aa0fa312d8a89da414fc0f459c0aa517ec",
+      "min_timestamp_utc": "2025-11-30 13:44:32.073973",
+      "max_timestamp_utc": "2026-10-22 16:50:53.832094",
+      "min_timestamp": "2025-11-30 19:14:32.073973",
+      "max_timestamp": "2026-10-22 22:20:53.832094",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 8768
+    },
+    "Mandir_Marg": {
+      "site_id": "site_122",
+      "station_name": "Mandir Marg, Delhi - DPCC",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__mandir_marg_delhi_dpcc__site_122.csv.gz",
+      "filename": "mandir_marg_live_site_122.csv.gz",
+      "sha256": "9a2715c067821a84853b94b4945e2db7dd4b4531e4bc82301612bd339360786d",
+      "min_timestamp_utc": "2025-11-30 13:44:52.640734",
+      "max_timestamp_utc": "2026-10-25 17:20:56.696389",
+      "min_timestamp": "2025-11-30 19:14:52.640734",
+      "max_timestamp": "2026-10-25 22:50:56.696389",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 8908
+    },
+    "Punjabi_Bagh": {
+      "site_id": "site_125",
+      "station_name": "Punjabi Bagh, Delhi - DPCC",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__punjabi_bagh_delhi_dpcc__site_125.csv.gz",
+      "filename": "punjabi_bagh_live_site_125.csv.gz",
+      "sha256": "c974ff866711e74124224620dab600d3acb18898f9f65e8aebc95c994b916131",
+      "min_timestamp_utc": "2025-12-01 02:35:09.999448",
+      "max_timestamp_utc": "2026-10-25 17:20:59.415328",
+      "min_timestamp": "2025-12-01 08:05:09.999448",
+      "max_timestamp": "2026-10-25 22:50:59.415328",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 8925
+    },
+    "RK_Puram": {
+      "site_id": "site_124",
+      "station_name": "R K Puram, Delhi - DPCC",
+      "url": "https://data.vayuayan.saketlab.org/data/delhi__delhi__r_k_puram_delhi_dpcc__site_124.csv.gz",
+      "filename": "rk_puram_live_site_124.csv.gz",
+      "sha256": "de513c48ddfee09655314fe8c4033b0c8c53935d873652c7719aa2bde825db00",
+      "min_timestamp_utc": "2025-12-01 02:34:49.746298",
+      "max_timestamp_utc": "2026-10-25 17:21:00.056957",
+      "min_timestamp": "2025-12-01 08:04:49.746298",
+      "max_timestamp": "2026-10-25 22:51:00.056957",
+      "timezone": "IST (UTC+05:30)",
+      "rows": 8942
+    }
+  }
+}

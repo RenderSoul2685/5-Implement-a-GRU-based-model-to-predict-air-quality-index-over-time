@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+
+{% block title %}About &amp; Methodology | AQI-GRU{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 2rem;">
+  <h1 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--text-main);">
+    🔬 About the AQI-GRU Next-Day Forecasting Project
+  </h1>
+  <p style="font-size: 1rem; color: var(--text-muted);">
+    Technical documentation of authentic monitoring data, deep learning model architecture, empirical benchmark evaluation, and scope limitations.
+  </p>
+</div>
+
+<!-- 1. Data Provenance -->
+<section class="card prose-section">
+  <h2>1. Data &amp; Provenance</h2>
+  <p>
+    The project relies exclusively on <strong>real CPCB readings across 6 Delhi monitoring stations</strong> spanning <strong>2023–2025</strong>, sourced from the OpenCity Delhi Air Quality repository republished from the Central Pollution Control Board (CPCB) / DPCC CAAQMS network:
+  </p>
+  <ul>
+    <li><strong>Anand Vihar</strong> (Eastern transit corridor / interstate bus terminal)</li>
+    <li><strong>Bawana</strong> (North-West industrial zone)</li>
+    <li><strong>ITO</strong> (Central high-traffic arterial intersection)</li>
+    <li><strong>Mandir Marg</strong> (Central institutional background site)</li>
+    <li><strong>Punjabi Bagh</strong> (West Delhi commercial and residential regime)</li>
+    <li><strong>RK Puram</strong> (South Delhi urban residential sector)</li>
+  </ul>
+  <p>
+    <strong>Daily Aggregation &amp; AQI Computation:</strong> Daily means are computed strictly from days with <strong>at least 18 valid hours</strong> (75% CPCB completeness criterion). Days with fewer than 18 valid hours are treated as unobserved (<code>NaN</code>). <strong>2023 AQI is the published value</strong> from official CPCB bulletins; <strong>2024–25 AQI was computed from pollutant readings</strong> ($\text{PM}_{2.5}, \text{PM}_{10}, \text{NO}_2, \text{SO}_2, \text{CO}, \text{O}_3$) aggregated from 15-minute sensor telemetry across official CPCB linear sub-index breakpoints.
+  </p>
+  <p>
+    <strong>Interpolation Policy:</strong> Gaps of <strong>up to 2 days only</strong> are linearly interpolated. Longer gaps remain missing, and windows containing them are excluded. Ground truth scoring is conducted <strong>strictly on observed target days</strong>.
+  </p>
+</section>
+
+<!-- 2. Model Architecture -->
+<section class="card prose-section">
+  <h2>2. Model Architecture</h2>
+  <p>
+    The predictive core uses a recurrent neural network designed for sequence-to-scalar forecasting:
+  </p>
+  <ul>
+    <li><strong>Model Architecture:</strong> <strong>2-layer GRU</strong> (hidden dimension: 64 units per layer, dropout: 0.20) with a linear projection head.</li>
+    <li><strong>Input Context:</strong> <strong>14-day historical lookback</strong> comprising past daily mean AQI, daily weather (temperature, humidity, wind speed, pressure), and cyclical day-of-week and month sine/cosine encodings (9 features total).</li>
+    <li><strong>Target Parameterization:</strong> <strong>Next-day target</strong> with a <strong>residual formulation</strong>: the model predicts tomorrow's step-wise delta ($\Delta \text{AQI}_{t+1} = \text{AQI}_{t+1} - \text{AQI}_t$). This delta is unscaled, added back to today's anchor AQI ($\text{AQI}_t$), and clipped to $[0, 500]$ before metric calculation.</li>
+    <li><strong>Optimization:</strong> Adam optimizer, Smooth L1 (Huber) loss, batch size 32, max 60 epochs with early stopping on validation loss (patience 12) across random seeds (42, 123, 456).</li>
+  </ul>
+</section>
+
+<!-- 3. Empirical Results -->
+<section class="card prose-section">
+  <h2>3. Benchmark Evaluation Results</h2>
+  <p>
+    Evaluated on the strictly held-out winter test split (<strong>2025-10-01 to 2025-12-31</strong>; 92 test days scored on observed ground truth). Below is the benchmark summary loaded directly from <code>outputs/results_table.md</code>:
+  </p>
+
+  {% if results_rows %}
+  <div class="table-responsive" style="margin: 1.25rem 0;">
+    <table class="data-table">
+      <thead>
+        <tr>
+          {% for header in results_headers %}
+            <th>{{ header }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in results_rows %}
+        <tr {% if 'GRU' in row.0 or 'City' in row.0 %}style="background-color: #eff6ff; font-weight: 600;"{% endif %}>
+          {% for cell in row %}
+            <td>{{ cell }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color: var(--text-muted); font-style: italic;">Results table currently unavailable.</p>
+  {% endif %}
+
+  <div class="callout-box">
+    <strong>Benchmark Conclusion:</strong> {{ tied_statement }}
+  </div>
+</section>
+
+<!-- 4. Limitations -->
+<section class="card prose-section">
+  <h2>4. Limitations</h2>
+  <ul>
+    <li><strong>Six Stations:</strong> Delhi NCT has over 40 active monitoring stations. The 6 CAAQMS stations represent primary corridors, but outer peripheral rural zones are unmodeled.</li>
+    <li><strong>Three Years:</strong> Data spans 2023–2025 (1,096 days). Multi-year climate shifts or once-in-a-decade extreme meteorology are outside this window.</li>
+    <li><strong>Winter-Only Test Set:</strong> Validation occurs during the monsoon season (July–Sept; lowest annual pollution), whereas the test set is during severe winter inversion (Oct–Dec; peak smog spikes). The test set has only 92 days.</li>
+  </ul>
+</section>
+
+<!-- AQI Reference Categories -->
+<section class="card prose-section" id="aqi-reference-section">
+  {% include "includes/aqi_reference_table.html" %}
+</section>
+{% endblock %}

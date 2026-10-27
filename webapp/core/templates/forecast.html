@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Delhi AQI Next-Day Forecast Replay | AQI-GRU{% endblock %}
+
+{% block content %}
+<!-- Mode Switcher Tabs -->
+<div class="mode-switch-wrapper" role="tablist">
+  <a href="?mode=live&station={{ selected_station }}" class="mode-tab {% if mode == 'live' %}active{% endif %}" id="mode-live-btn" role="tab">
+    <span>⚡ Latest data</span>
+  </a>
+  <a href="?mode=replay&station={{ selected_station }}&date=2025-11-15" class="mode-tab {% if mode == 'replay' %}active{% endif %}" id="mode-replay-btn" role="tab">
+    <span>⏪ Replay (2025 test set)</span>
+  </a>
+</div>
+
+<!-- Stale Data Warning Banner (when live data date is > 3 days old) -->
+{% if is_stale and stale_message %}
+<div class="alert-warning" role="alert" id="stale-data-alert">
+  <span style="font-size: 1.4rem;">⚠️</span>
+  <div>
+    <strong>Data Freshness Notice:</strong> {{ stale_message }}
+  </div>
+</div>
+{% endif %}
+
+<!-- Notice Header Banner -->
+<div class="notice-banner">
+  {% if mode == 'live' %}
+    <span class="notice-icon">📡</span>
+    <div>
+      <strong>Latest data:</strong> {{ data_date }}
+      {% if not is_stale %}
+        <span style="margin-left: 0.5rem; color: var(--cpcb-good); font-weight: 600;">(Live CPCB telemetry feed)</span>
+      {% endif %}
+    </div>
+  {% else %}
+    <span class="notice-icon">ℹ️</span>
+    <div>
+      <strong>Notice:</strong> {{ notice }}
+    </div>
+  {% endif %}
+</div>
+
+{% if mode == 'live' %}
+<div class="alert-info" role="note" id="live-inputs-note">
+  <span style="font-size: 1.25rem;">ℹ️</span>
+  <div>
+    Live inputs come from a CPCB feed of 24-hour rolling averages, unlike the training data; forecasts are indicative only.
+  </div>
+</div>
+{% endif %}
+
+<!-- Station & Parameters Selection Card -->
+<section class="card">
+  <h1 class="card-title" style="font-size: 1.25rem;">
+    {% if mode == 'live' %}
+      <span>🎯 Select Station for Next-Day Forecast</span>
+    {% else %}
+      <span>🎯 Select Station &amp; "Forecast From" Date</span>
+    {% endif %}
+  </h1>
+  <form method="GET" action="{% url 'forecast' %}" class="filter-form">
+    <input type="hidden" name="mode" value="{{ mode }}">
+
+    <div class="form-group">
+      <label for="station-select" class="form-label">Monitoring Station</label>
+      <select id="station-select" name="station" class="form-select" required>
+        {% for st in available_stations %}
+          <option value="{{ st }}" {% if st == selected_station %}selected{% endif %}>
+            {{ st }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    {% if mode == 'replay' %}
+    <div class="form-group">
+      <label for="date-picker" class="form-label">Forecast From Date (2025-10-01 to 2025-12-30)</label>
+      <input
+        type="date"
+        id="date-picker"
+        name="date"
+        class="form-input"
+        value="{{ selected_date }}"
+        min="{{ min_date }}"
+        max="{{ max_date }}"
+        required
+      >
+    </div>
+    {% else %}
+    <div class="form-group">
+      <label class="form-label">Observation Anchor Date</label>
+      <input
+        type="text"
+        class="form-input"
+        value="{{ data_date }} (Latest Available Readings)"
+        readonly
+        style="background: var(--bg-subtle); color: var(--text-muted); cursor: not-allowed;"
+      >
+    </div>
+    {% endif %}
+
+    <div>
+      <button type="submit" class="btn-primary" id="forecast-submit-btn">
+        <span>⚡ Forecast Tomorrow</span>
+      </button>
+    </div>
+  </form>
+</section>
+
+<!-- Error or Incomplete 14-Day Window Alert -->
+{% if error_message %}
+<div class="alert-error" role="alert" id="error-alert">
+  <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+    <span style="font-size: 1.4rem;">⚠️</span>
+    <div>
+      <h3 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.25rem;">Unable to Compute Next-Day Forecast</h3>
+      <p>{{ error_message }}</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Forecast Results Container -->
+{% if forecast_data and forecast_data.success %}
+<!-- Key Metrics Summary Grid -->
+<div class="stat-grid">
+  <!-- Today's AQI -->
+  <div class="stat-box">
+    <div class="stat-label">
+      Today's Observed AQI ({{ forecast_data.today_date }})
+      {% if forecast_data.is_partial_day %}
+        <span class="badge" style="background: rgba(234, 179, 8, 0.15); color: #b45309; font-weight: 600; font-size: 0.75rem; margin-left: 0.4rem; padding: 0.2rem 0.5rem; border-radius: 9999px;">
+          {{ forecast_data.partial_day_text }}
+        </span>
+      {% endif %}
+    </div>
+    <div class="stat-value">
+      {{ forecast_data.today_aqi }}
+      <span class="badge badge-{{ forecast_data.today_category|slugify }} badge-{{ forecast_data.today_category|cut:' ' }}">
+        {{ forecast_data.today_category }}
+      </span>
+      {% if forecast_data.is_partial_day %}
+        <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted); margin-left: 0.5rem;">
+          {{ forecast_data.partial_day_text }}
+        </span>
+      {% endif %}
+    </div>
+    <div class="stat-subtext">Lookback Anchor (Day T-0)</div>
+  </div>
+
+  <!-- Tomorrow's Predicted AQI -->
+  <div class="stat-box" style="border-left: 4px solid var(--primary);">
+    <div class="stat-label">Tomorrow's Predicted AQI ({{ forecast_data.tomorrow_date }})</div>
+    <div class="stat-value" style="color: var(--primary);">
+      {{ forecast_data.tomorrow_forecast }}
+      <span class="badge badge-{{ forecast_data.forecast_category|slugify }} badge-{{ forecast_data.forecast_category|cut:' ' }}">
+        {{ forecast_data.forecast_category }}
+      </span>
+    </div>
+    <div class="stat-subtext">Next-Day Forecast (Lead Time: +1 Day)</div>
+  </div>
+
+  <!-- In Replay Mode: Observed Actual for Tomorrow -->
+  {% if mode == 'replay' %}
+  <div class="stat-box">
+    <div class="stat-label">Tomorrow's Observed Actual (Ground Truth)</div>
+    <div class="stat-value">
+      {% if forecast_data.actual_aqi is not None %}
+        {{ forecast_data.actual_aqi }}
+        <span class="badge badge-{{ forecast_data.actual_category|slugify }} badge-{{ forecast_data.actual_category|cut:' ' }}">
+          {{ forecast_data.actual_category }}
+        </span>
+      {% else %}
+        <span style="font-size: 1rem; color: var(--text-muted);">Unrecorded</span>
+      {% endif %}
+    </div>
+    <div class="stat-subtext">
+      {% if forecast_data.abs_error is not None %}
+        Absolute Error: <strong>{{ forecast_data.abs_error }}</strong> AQI points
+      {% else %}
+        Sensor offline / dropout
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Station Name -->
+  <div class="stat-box">
+    <div class="stat-label">Active Station</div>
+    <div class="stat-value" style="font-size: 1.15rem; color: var(--text-main);">
+      {{ forecast_data.station }}
+    </div>
+    <div class="stat-subtext">Delhi CAAQMS Monitoring Network</div>
+  </div>
+</div>
+
+<!-- Interactive Chart Card -->
+<section class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+    <h2 class="card-title" style="margin-bottom: 0;">
+      <span>📈 14-Day Historical Context &amp; Next-Day Forecast Point</span>
+    </h2>
+    <div style="font-size: 0.85rem; color: var(--text-muted);">
+      Context: <strong>{{ forecast_data.lookback_start }}</strong> to <strong>{{ forecast_data.lookback_end }}</strong> &rarr; Target: <strong>{{ forecast_data.tomorrow_date }}</strong>
+    </div>
+  </div>
+  <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+    Solid blue line shows the preceding 14 days of daily mean AQI. The dashed accent line predicts tomorrow's AQI.
+    {% if mode == 'replay' %}
+      When ground-truth sensor telemetry is available for tomorrow, it is plotted for direct validation.
+    {% else %}
+      Tomorrow's observed actual is not plotted as it has not occurred yet.
+    {% endif %}
+  </p>
+  <div class="chart-container">
+    <canvas id="nextDayChart"></canvas>
+  </div>
+</section>
+
+<!-- Last 14 Days Historical Breakdown Table -->
+<section class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+    <h2 class="card-title" style="margin-bottom: 0;">
+      <span>📋 Historical 14-Day Lookback Sequence</span>
+    </h2>
+    <div style="font-size: 0.82rem; color: var(--text-muted);">
+      CPCB Scale: Good (0-50), Satisfactory (51-100), Moderate (101-200), Poor (201-300), Very Poor (301-400), Severe (401+)
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Date</th>
+          <th>Daily Mean AQI</th>
+          <th>CPCB Health Category</th>
+          <th>Data Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in forecast_data.history_table %}
+        <tr {% if forloop.last %}style="background-color: #eff6ff; font-weight: 600;"{% endif %}>
+          <td>
+            {% if forloop.last %}
+              <strong>Today (T-0)</strong>
+            {% else %}
+              T-{{ forloop.revcounter0 }}
+            {% endif %}
+          </td>
+          <td>{{ row.date }}</td>
+          <td><strong>{{ row.aqi }}</strong></td>
+          <td>
+            <span class="badge badge-{{ row.category|slugify }} badge-{{ row.category|cut:' ' }}">
+              {{ row.category }}
+            </span>
+          </td>
+          <td>
+            {% if row.observed_raw %}
+              <span style="color: #059669; font-weight: 500;">✓ Observed (&ge;18h)</span>
+            {% else %}
+              <span style="color: #d97706; font-style: italic;">Interpolated (&le;2d)</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<script id="chart-data" type="application/json">
+  {{ chart_data_json|safe }}
+</script>
+{% endif %}
+
+<!-- AQI Reference Table Card -->
+<section class="card" id="aqi-reference-section" style="margin-top: 1.5rem;">
+  {% include "includes/aqi_reference_table.html" %}
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+{% if chart_data_json %}
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const rawData = JSON.parse(document.getElementById('chart-data').textContent);
+    const canvas = document.getElementById('nextDayChart');
+    if (!canvas) return;
+
+    const datasets = [
+      {
+        label: '14-Day Historical Observed AQI',
+        data: rawData.historical,
+        borderColor: '#0f172a',
+        backgroundColor: 'rgba(15, 23, 42, 0.05)',
+        fill: false,
+        tension: 0.2,
+        borderWidth: 2.2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#0f172a',
+        zIndex: 5,
+      },
+      {
+        label: 'Next-Day Model Forecast',
+        data: rawData.forecast_line,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.15)',
+        borderDash: [6, 4],
+        fill: false,
+        tension: 0.1,
+        borderWidth: 3,
+        pointRadius: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 7],
+        pointHoverRadius: 9,
+        pointBackgroundColor: '#2563eb',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        zIndex: 10,
+      }
+    ];
+
+    if (rawData.mode === 'replay' && rawData.actual_point) {
+      datasets.push({
+        label: 'Tomorrow Observed Actual',
+        data: rawData.actual_point,
+        borderColor: '#dc2626',
+        backgroundColor: '#dc2626',
+        showLine: false,
+        pointRadius: 7,
+        pointHoverRadius: 9,
+        pointStyle: 'rectRot',
+        pointBackgroundColor: '#dc2626',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        zIndex: 15,
+      });
+    }
+
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: rawData.labels,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              boxWidth: 8,
+              font: {
+                family: 'Inter',
+                size: 12,
+                weight: 600
+              },
+              padding: 16
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+            titleFont: { family: 'Inter', size: 12, weight: 600 },
+            bodyFont: { family: 'Inter', size: 12 },
+            padding: 12,
+            cornerRadius: 8,
+            boxPadding: 4,
+            callbacks: {
+              label: function(context) {
+                const label = context.dataset.label || '';
+                const val = context.parsed.y;
+                if (val === null || val === undefined || isNaN(val)) {
+                  return label + ': No reading';
+                }
+                return label + ': ' + val + ' AQI';
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Date Timeline (14 Days Lookback + Tomorrow)',
+              font: { family: 'Inter', size: 12, weight: 600 },
+              color: '#64748b',
+              padding: { top: 8 }
+            },
+            grid: {
+              color: '#f1f5f9'
+            },
+            ticks: {
+              font: { family: 'Inter', size: 11 },
+              color: '#64748b'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: 'Daily Mean AQI',
+              font: { family: 'Inter', size: 12, weight: 600 },
+              color: '#64748b',
+              padding: { bottom: 8 }
+            },
+            grid: {
+              color: '#f1f5f9'
+            },
+            ticks: {
+              font: { family: 'Inter', size: 11 },
+              color: '#64748b'
+            },
+            suggestedMin: 100,
+            suggestedMax: 480
+          }
+        }
+      }
+    });
+  });
+</script>
+{% endif %}
+{% endblock %}

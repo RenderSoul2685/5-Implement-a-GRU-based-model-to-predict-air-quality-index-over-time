@@ -1,0 +1,1 @@
+"""Webapp Django configuration package."""
